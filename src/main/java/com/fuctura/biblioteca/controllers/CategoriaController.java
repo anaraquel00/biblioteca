@@ -3,19 +3,15 @@ package com.fuctura.biblioteca.controllers;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fuctura.biblioteca.repositories.CategoriaRepository;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import static org.springframework.http.ResponseEntity.ok;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.web.bind.annotation.*;
 
 import com.fuctura.biblioteca.dtos.CategoriaDto;
 import com.fuctura.biblioteca.models.Categoria;
@@ -31,7 +27,7 @@ import com.fuctura.biblioteca.services.CategoriaService;
 // @Autowired = é uma anotação que indica que o Spring deve injetar uma instância da classe CategoriaService no controlador.
 
 @RestController
-@RequestMapping("/categoria")
+@RequestMapping("/categorias")
 
 public class CategoriaController {
 
@@ -51,16 +47,26 @@ public class CategoriaController {
     @GetMapping
     public ResponseEntity<List<CategoriaDto>> findAll() {
         List<Categoria> list = categoriaService.findAll();
-        return ResponseEntity.ok().body(list.stream().map(obj -> modelMapper.map(obj, CategoriaDto.class)).collect(Collectors.toList()));
+        return ok().body(list.stream().map(obj -> modelMapper.map(obj, CategoriaDto.class)).collect(Collectors.toList()));
     }
 
-    @GetMapping
+    @GetMapping("/categoria")
+    public List<Categoria> filtrarPorNome(@RequestParam(required = false) String nome) {
+
+        CategoriaRepository categoriaRepository = null;
+        if (nome != null) {
+            return categoriaRepository.findByNomeContaining(nome);
+        }
+        return categoriaRepository.findAll();
+    }
+
+    @GetMapping("/buscar-por-nome")
     public ResponseEntity<List<CategoriaDto>> findByNome() {
         List<Categoria> list = categoriaService.findAll();
         List<CategoriaDto> listDto = list.stream()
                 .map(categoria -> modelMapper.map(categoria, CategoriaDto.class))
                 .collect(Collectors.toList());
-        return ResponseEntity.ok().body(listDto);
+        return ok().body(listDto);
 
     }
 
@@ -70,7 +76,7 @@ public class CategoriaController {
         Categoria categoria = modelMapper.map(categoriaDto, Categoria.class);
         Categoria cat = categoriaService.save(categoria);
         CategoriaDto catDto = modelMapper.map(cat, CategoriaDto.class);
-        return ResponseEntity.ok().body(catDto);
+        return ok().body(catDto);
 
     }
 
@@ -83,6 +89,22 @@ public class CategoriaController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Integer id) {
         categoriaService.delete(id);
+    }
+
+    @GetMapping("/listar-categorias")
+    public ResponseEntity<Page<Categoria>> listarCategorias(
+            @RequestParam(required = false) String nome,
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "10") int itensPorPagina,
+            @RequestParam(defaultValue = "nome") String ordenarPor) {
+
+        Page<Categoria> categoria;
+        if (nome != null) {
+            categoria = categoriaService.buscarPorNome(nome, pagina, itensPorPagina, ordenarPor);
+        } else {
+            categoria = categoriaService.listarTodas(pagina, itensPorPagina, ordenarPor);
+        }
+        return ok(categoria);
     }
 
 }

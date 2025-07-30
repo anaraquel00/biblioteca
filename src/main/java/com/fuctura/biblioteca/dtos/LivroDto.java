@@ -1,7 +1,5 @@
 package com.fuctura.biblioteca.dtos;
 
-import com.fuctura.biblioteca.models.Categoria;
-import com.fuctura.biblioteca.models.Livro;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
@@ -26,18 +24,19 @@ public class LivroDto {
     @Length(min = 4, max = 4, message = "O ano de publicação deve ter 4 dígitos")
     private Integer anoPublicacao;
 
+
     public LivroDto(Integer id, String titulo, String autor, String editora, Integer anoPublicacao) {
         this.id = id;
         this.titulo = titulo;
         this.autor = autor;
         this.editora = editora;
         this.anoPublicacao = anoPublicacao;
+
     }
     public LivroDto() {}
 
     public LivroDto(LivroDto livroDto) {
     }
-
     public Integer getId() {
         return id;
     }
@@ -57,6 +56,8 @@ public class LivroDto {
     public Integer getAnoPublicacao() {
         return anoPublicacao;
     }
+
+    public void setId(Integer id) { this.id = id;    }
    }
 
 

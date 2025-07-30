@@ -6,6 +6,10 @@ import com.fuctura.biblioteca.repositories.CategoriaRepository;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +39,7 @@ public class CategoriaService {
 
     public Categoria save(Categoria categoria) {
         categoriaRepository.findByNome(categoria.getNome());
-        categoria.setId(null);
+        categoria.getId();
         Categoria cat = categoriaRepository.save(categoria);
         return cat;
     }
@@ -76,8 +80,30 @@ public class CategoriaService {
         String nome = "";
         throw new ObjectNotFoundException("Categoria não encontrada com o nome: " + nome);
     }
-    public void deleteById (Integer id) {
+
+    public Page<Categoria> buscarPorNome(String nome, int pagina, int itensPorPagina, String ordenarPor) {
+        Pageable pageable = PageRequest.of(pagina, itensPorPagina, Sort.by(ordenarPor));
+        if (pagina < 0) {
+            throw new IllegalArgumentException("Número da página não pode ser negativo");
+        }
+        if (itensPorPagina < 1 || itensPorPagina > 100) {
+            throw new IllegalArgumentException("Itens por página deve estar entre 1 e 100");
+        }
+        return categoriaRepository.findByNomeContaining(nome, pageable);
+
+        // Ou para ordenação fixa:
+        // return repository.findByNomeContainingOrderByNomeAsc(nome, pageable);
+    } public void deleteById (Integer id) {
         findById(id);
         categoriaRepository.deleteById(id);
     }
+
+    public Page<Categoria> listarTodas(int pagina, int itensPorPagina, String ordenarPor) {
+        Pageable pageable = PageRequest.of(pagina, itensPorPagina, Sort.by(ordenarPor));
+        return categoriaRepository.findAll(pageable);
+    }
+
+
 }
+
+

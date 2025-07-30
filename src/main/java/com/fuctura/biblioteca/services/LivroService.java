@@ -1,70 +1,89 @@
 package com.fuctura.biblioteca.services;
 
+import com.fuctura.biblioteca.models.Categoria;
 import com.fuctura.biblioteca.models.Livro;
+import com.fuctura.biblioteca.repositories.CategoriaRepository;
 import com.fuctura.biblioteca.repositories.LivroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LivroService {
-    LivroRepository livroRepository;
-    @Autowired
-    public static Livro save(Livro livro) {
 
-        LivroRepository livroRepository = null;
-        livroRepository.save(livro); // Save the book using the repository
-        return livro; // Return the saved book
+    private final LivroRepository livroRepository;
+    private final CategoriaRepository categoriaRepository;
+
+    public LivroService(LivroRepository livroRepository,
+                        CategoriaRepository categoriaRepository) {
+        this.livroRepository = livroRepository;
+        this.categoriaRepository = categoriaRepository;
     }
 
-    public Livro createLivro(Livro livro) {
+    public Livro save(Livro livro) {
+        // Validação explícita
+        if (livro.getCategoria() == null || livro.getCategoria().getId() == null) {
+            throw new IllegalArgumentException("Categoria é obrigatória");
+        }
 
-        LivroRepository livroRepository = null;
-        livroRepository.save();
-        return livro; // Return the saved book
-     }
+        // Carrega a categoria completa do banco
+        Categoria categoria = categoriaRepository.findById(livro.getCategoria().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada"));
+
+        // Associa a categoria ao livro
+        livro.setCategoria(categoria);
+
+        return livroRepository.save(livro);
+    }
 
     public Livro getLivroById(Integer id) {
-        // Logic to retrieve a book by its ID
-        // This could involve calling a repository method to find the book in the database.
-        // For example:
-        LivroRepository livroRepository = null;
-        return livroRepository.findById(id).orElse(null); // Return the book if found, or null if not found
+        return livroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Livro não encontrado com o id: " + id));
     }
 
     public List<Livro> findAll() {
-
-        LivroRepository livroRepository = null;
         return livroRepository.findAll();
     }
 
-     public void deleteLivro(Integer id) {
-
-       LivroRepository livroRepository = null;
-        livroRepository.deleteById(id); // Delete the book by its ID
-     }
+    public void deleteLivro(Integer id) {
+        livroRepository.deleteById(id);
+    }
 
     public Livro findById(Integer id) {
-        LivroRepository livroRepository = null;
-        return livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Livro não encontrado com o id: " + id));
+        return livroRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Livro não encontrado com o id: " + id));
     }
 
     public Livro update(Livro livro) {
-        LivroRepository livroRepository = null;
-        Livro existingLivro = findById(livro.getId());
-        existingLivro.setTitulo(livro.getTitulo());
-        existingLivro.setAutor(livro.getAutor());
-        existingLivro.setCategoria(livro.getCategoria());
-        return livroRepository.save(existingLivro);
+        // Verifica se o livro existe
+        if (!livroRepository.existsById(livro.getId())) {
+            throw new RuntimeException("Livro não encontrado com o id: " + livro.getId());
+        }
+        return livroRepository.save(livro);
     }
 
     public void delete(Integer id) {
-        LivroRepository livroRepository = null;
-        Livro livro = findById(id);
-        if (livro != null) {
-            livroRepository.deleteById(id); // Delete the book by its ID
-        } else {
+        if (!livroRepository.existsById(id)) {
             throw new RuntimeException("Livro não encontrado com o id: " + id);
         }
+        livroRepository.deleteById(id);
+    }
+
+    public Page<Livro> buscarPorNome(String nome, int pagina, int itensPorPagina, String ordenarPor) {
+        Pageable pageable = PageRequest.of(pagina, itensPorPagina, Sort.by(ordenarPor));
+
+        if (nome != null && !nome.isEmpty()) {
+            return livroRepository.findByTituloContainingIgnoreCase(nome, pageable);
+        }
+        return livroRepository.findAll(pageable);
+    }
+
+    public Page<Livro> listarTodas(int pagina, int itensPorPagina, String ordenarPor) {
+        return livroRepository.findAll(PageRequest.of(pagina, itensPorPagina, Sort.by(ordenarPor)));
     }
 }

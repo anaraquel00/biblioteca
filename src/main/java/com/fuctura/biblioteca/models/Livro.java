@@ -3,6 +3,7 @@ package com.fuctura.biblioteca.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fuctura.biblioteca.enuns.Tamanho;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Table(name="livro")
@@ -16,7 +17,8 @@ public class Livro {
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name= "categoria_id")
+    @JoinColumn(name = "categoria_id")
+    @NotNull(message = "Categoria é obrigatória")
     private Categoria categoria;
     private Tamanho tamanho;
 
@@ -50,4 +52,6 @@ public class Livro {
 
     public Tamanho getTamanho() { return tamanho; }
     public void setTamanho(Tamanho tamanho) { this.tamanho = tamanho; }
+
+
 }

@@ -10,6 +10,7 @@ public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+    @Column(nullable = false)
     private String nome;
     private String descricao;
 
@@ -23,7 +24,11 @@ public class Categoria {
         this.nome = nome;
         this.descricao = descricao;
     }
-//generate getters and setters
+
+    public Categoria(Long categoriaId) {
+    }
+
+    //generate getters and setters
     public Integer getId() {
         return id;
     }
@@ -67,6 +72,14 @@ public class Categoria {
      */
 
     public Categoria get() {
+        if (isPresent()) {
+            return this;
+        } else {
+            throw new IllegalStateException("Categoria não encontrada");
+        }
+    }
+
+    public Categoria orElseThrow(Object categoriaNãoEncontrada) {
         if (isPresent()) {
             return this;
         } else {
