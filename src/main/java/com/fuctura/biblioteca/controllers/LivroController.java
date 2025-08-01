@@ -1,5 +1,6 @@
 package com.fuctura.biblioteca.controllers;
 
+import com.fuctura.biblioteca.dtos.LivroDto;
 import com.fuctura.biblioteca.models.Livro;
 import com.fuctura.biblioteca.services.LivroService;
 import jakarta.validation.Valid;
@@ -7,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -57,12 +60,32 @@ public class LivroController {
     }
 
     @PostMapping
-    public ResponseEntity<?> save(@Valid @RequestBody Livro livro) {
+    public ResponseEntity<?> criarLivro(
+            @RequestParam Integer categoriaId,
+            @Valid @RequestBody LivroDto livroDto,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            List<String> errors = bindingResult.getFieldErrors()
+                    .stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .collect(Collectors.toList());
+            return ResponseEntity.badRequest().body(errors);
+        }
+
         try {
-            Livro livroSalvo = livroService.save(livro);
-            return ResponseEntity.status(HttpStatus.CREATED).body(livroSalvo);
+            Livro livro = livroService.criarLivroComCategoria(livroDto, categoriaId);
+
+            return ResponseEntity
+                    .created(ServletUriComponentsBuilder.fromCurrentRequest()
+                            .path("/{id}")
+                            .buildAndExpand(livro.getId())
+                            .toUri())
+                    .body(new LivroDto(livro));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -1,7 +1,12 @@
 package com.fuctura.biblioteca.dtos;
 
+import com.fuctura.biblioteca.enuns.Tamanho;
+import com.fuctura.biblioteca.models.Livro;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 
 import java.util.List;
 
@@ -21,8 +26,9 @@ public class LivroDto {
     private String editora;
 
     @NotNull(message = "O ano de publicação do livro não pode ser nulo")
-    @Length(min = 4, max = 4, message = "O ano de publicação deve ter 4 dígitos")
+    @Range(min = 1000, max = 9999, message = "O ano deve ter exatamente 4 dígitos")
     private Integer anoPublicacao;
+    private Tamanho tamanho;
 
 
     public LivroDto(Integer id, String titulo, String autor, String editora, Integer anoPublicacao) {
@@ -37,6 +43,10 @@ public class LivroDto {
 
     public LivroDto(LivroDto livroDto) {
     }
+
+    public LivroDto(Livro livro) {
+    }
+
     public Integer getId() {
         return id;
     }
@@ -58,6 +68,39 @@ public class LivroDto {
     }
 
     public void setId(Integer id) { this.id = id;    }
-   }
+
+    public String getTexto() {
+        return getTexto(); // Implementar se necessário
+
+    }
+    public String setTexto(String texto) {
+       return texto;
+
+}
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
+    }
+
+    public void setEditora(String editora) {
+        this.editora = editora;
+    }
+
+    public void setAnoPublicacao(Integer anoPublicacao) {
+        this.anoPublicacao = anoPublicacao;
+    }
+
+    public Tamanho getTamanho() {
+        return getTamanho(); // Implementar se necessário
+    }
+    public void setTamanho(Tamanho tamanho) {
+        this.tamanho = tamanho; // Implementar se necessário
+    }
+
+}
 
 

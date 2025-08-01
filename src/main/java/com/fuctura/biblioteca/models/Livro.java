@@ -14,6 +14,9 @@ public class Livro {
     private String titulo;
     private String autor;
     private String texto;
+    private String editora;
+    private Integer anoPublicacao;
+
 
     @JsonIgnore
     @ManyToOne
@@ -24,13 +27,24 @@ public class Livro {
 
     public Livro() {}
 
-    public Livro(Integer id, String titulo, String autor, String texto, Tamanho tamanho, Categoria categoria) {
+    public Livro(Integer id, String titulo, String autor, String texto, Tamanho tamanho, Categoria categoria, String editora, Integer anoPublicacao) {
         this.id = id;
         this.titulo = titulo;
         this.autor = autor;
         this.texto = texto;
         this.tamanho = tamanho;
         this.categoria = categoria;
+        this.editora = editora;
+        this.anoPublicacao = anoPublicacao;
+
+    }
+
+    public Livro(Object o, String cleanCode, String robertinMartin, String loremIpsum, Tamanho tamanho, Categoria cat1) {
+        this.titulo = cleanCode;
+        this.autor = robertinMartin;
+        this.texto = loremIpsum;
+        this.tamanho = tamanho;
+        this.categoria = cat1;
     }
 
     // Getters e setters para todos os campos
@@ -53,5 +67,16 @@ public class Livro {
     public Tamanho getTamanho() { return tamanho; }
     public void setTamanho(Tamanho tamanho) { this.tamanho = tamanho; }
 
+    public String getEditora() {
+        return editora;
+    }
+     public void setEditora(String editora) {
+        this.editora = editora;
+    }
+     public Integer getAnoPublicacao() {
+        return anoPublicacao;
+    }
 
+     public void setAnoPublicacao(Integer anoPublicacao) {
+    }
 }

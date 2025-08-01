@@ -40,14 +40,14 @@ public class CategoriaService {
     public Categoria save(Categoria categoria) {
         categoriaRepository.findByNome(categoria.getNome());
         categoria.getId();
-        Categoria cat = categoriaRepository.save(categoria);
+        Categoria cat = (Categoria) categoriaRepository.save(categoria);
         return cat;
     }
 
     public Categoria update(Categoria categoria) {
         findById(categoria.getId());
         findByNome(categoria);
-        Categoria cat = categoriaRepository.save(categoria);
+        Categoria cat = (Categoria) categoriaRepository.save(categoria);
         return cat;
     }
     public void delete(Integer id) {

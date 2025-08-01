@@ -1,5 +1,6 @@
 package com.fuctura.biblioteca.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ public class Categoria {
     public void setDescricao(String descricao) {
         this.descricao = descricao;
             }
+
     public List<Livro> getLivros() {
         return livros;
     }
