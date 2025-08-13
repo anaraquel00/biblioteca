@@ -9,7 +9,7 @@ import com.fuctura.biblioteca.services.DBService;
 import jakarta.annotation.PostConstruct;
 
 @Configuration
-@Profile("test")
+@Profile("dev") //mudar para dev
 public class TestProfile {
 
     @Autowired

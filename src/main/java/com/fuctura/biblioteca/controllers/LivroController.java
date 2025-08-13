@@ -4,96 +4,72 @@ import com.fuctura.biblioteca.dtos.LivroDto;
 import com.fuctura.biblioteca.models.Livro;
 import com.fuctura.biblioteca.services.LivroService;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
-import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.ResponseEntity.ok;
-
+@CrossOrigin("*")
 @RestController
-@RequestMapping("/livros")  // Altere o endpoint
+@RequestMapping("/livro")  // Altere o endpoint
 public class LivroController {
 
     @Autowired
-    private LivroService livroService;  // Injete o LivroService
-    private LivroController categoriaService;
+    private LivroService livroService;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
 
     @GetMapping
-    public ResponseEntity<List<Livro>> findAll() {
+    public ResponseEntity<List<LivroDto>> findAll() {
+
         List<Livro> list = livroService.findAll();
-        if (list.isEmpty()) {
-            throw new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Nenhum livro encontrado");
-        }
-        return ok().body(list);
-
+        return ResponseEntity.ok().body(list.stream()
+                .map(obj -> modelMapper.map(obj, LivroDto.class))
+                .collect(Collectors.toList()));
     }
-
+    //localhost:8080/livro/1
     @GetMapping("/{id}")
-    public ResponseEntity<Livro> findById(@PathVariable Integer id) {
-        Livro obj = livroService.findById(id);
-        return ok().body(obj);
+    public ResponseEntity<LivroDto> findById(@PathVariable Integer id) {
+        Livro livro = livroService.findById(id);
+        LivroDto livroDto = modelMapper.map(livro, LivroDto.class);
+        return ResponseEntity.ok().body(livroDto);
     }
-
-    @GetMapping("/listar-livros")
-    public ResponseEntity<Page<Livro>> listarCategorias(
-            @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int itensPorPagina,
-            @RequestParam(defaultValue = "nome") String ordenarPor) {
-
-        Page<Livro> livro;
-        if (nome != null) {
-            livro = livroService.buscarPorNome(nome, pagina, itensPorPagina, ordenarPor);
-        } else {
-            livro = livroService.listarTodas(pagina, itensPorPagina, ordenarPor);
-        }
-        return ok(livro);
-    }
+    //localhost:8080/livro?categoria=1
+    //@GetMapping
+    //public ResponseEntity<List<LivroDto>> findAll(@RequestParam(value = "categoria", defaultValue = "0") Integer id_cat) {
+        //List<Livro> list = livroService.findAll(id_cat);
+        //return ResponseEntity.ok().body(list.stream().map(obj -> modelMapper.map(obj, LivroDto.class))
+                //.collect(Collectors.toList()));
+   // }
 
     @PostMapping
-    public ResponseEntity<?> criarLivro(
-            @RequestParam Integer categoriaId,
-            @Valid @RequestBody LivroDto livroDto,
-            BindingResult bindingResult) {
+    public ResponseEntity<LivroDto> criarLivro(
+            @RequestParam Integer categoria,  // Obrigatório (removi defaultValue)
+            @Valid @RequestBody LivroDto livroDto) {
 
-        if (bindingResult.hasErrors()) {
-            List<String> errors = bindingResult.getFieldErrors()
-                    .stream()
-                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                    .collect(Collectors.toList());
-            return ResponseEntity.badRequest().body(errors);
-        }
+        // Converte DTO para Entidade
+        Livro livro = new Livro();
+        livro.setTitulo(livroDto.getTitulo());
+        livro.setAutor(livroDto.getAutor());
+        livro.setTexto(livroDto.getTexto());
+        livro.setTamanho(livroDto.getTamanho());
 
-        try {
-            Livro livro = livroService.criarLivroComCategoria(livroDto, categoriaId);
+        // Salva com a categoria
+        Livro livroSalvo = livroService.save(categoria, livro);
 
-            return ResponseEntity
-                    .created(ServletUriComponentsBuilder.fromCurrentRequest()
-                            .path("/{id}")
-                            .buildAndExpand(livro.getId())
-                            .toUri())
-                    .body(new LivroDto(livro));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-    }
+        // Converte de volta para DTO
+        LivroDto responseDto = new LivroDto();
+        responseDto.setTitulo(livroSalvo.getTitulo());
+        responseDto.setAutor(livroSalvo.getAutor());
+        responseDto.setTexto(livroSalvo.getTexto());
+        responseDto.setTamanho(livroSalvo.getTamanho());
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Livro> update(@PathVariable Integer id, @RequestBody Livro livro) {
-        livro.setId(id);
-        Livro updatedLivro = livroService.update(livro);
-        return ok().body(updatedLivro);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @DeleteMapping("/{id}")

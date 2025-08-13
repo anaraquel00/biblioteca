@@ -15,8 +15,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CategoriaRepository<CategoriaProjection> extends JpaRepository<Categoria, Integer> {
-    List<CategoriaProjection> findAllProjectedBy();
+public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
+
+    Optional<Categoria> findByNome(String nome);
+
+    Optional<Categoria> findByNomeIgnoreCaseContaining(String nome);
 
     @Query("SELECT c FROM Categoria c LEFT JOIN FETCH c.livros WHERE c.id = :id")
     Optional<Categoria> findByIdWithLivros(@Param("id") Integer id);
@@ -24,13 +27,9 @@ public interface CategoriaRepository<CategoriaProjection> extends JpaRepository<
     @Query("SELECT c FROM Categoria c LEFT JOIN FETCH c.livros WHERE c.nome = :nome")
     Optional<Categoria> findByNomeWithLivros(@Param("nome") String nome);
 
-    Optional<Categoria> findByNome(String nome);
-    //@Query("SELECT c FROM Categoria as c WHERE LOWER(c.nome) = LOWER(:nome)") //consulta JPQL
-    Optional<Categoria> findByNomeIgnoreCaseContaining(String nome);
-
     List<Categoria> findByNomeContaining(String nome);
 
-    // Método com paginação
+    //Método com paginação
     Page<Categoria> findByNomeContaining(String nome, Pageable pageable);
 
     // Versão alternativa com ordenação padrão

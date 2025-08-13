@@ -28,83 +28,55 @@ import com.fuctura.biblioteca.services.CategoriaService;
 
 @RestController
 @RequestMapping("/categorias")
-
+//@CrossOrigin("*") // Permite requisições de diferentes origens (CORS) (FrontEnd)
 public class CategoriaController {
 
-     @Autowired
+    @Autowired
     private CategoriaService categoriaService;
-    
+
     @Autowired
     private ModelMapper modelMapper;
-    
+
     @GetMapping("/{id}")
-    public ResponseEntity <CategoriaDto> findById(@PathVariable Integer id) {
+    public ResponseEntity<CategoriaDto> findById(@PathVariable Integer id) {
         Categoria categoria = categoriaService.findById(id);
-        CategoriaDto catDto = new CategoriaDto(categoria);
-        return ok().body(new CategoriaDto(categoria));
+        //CategoriaDto categoriaDto = modelMapper.map(categoria, CategoriaDto.class;
+        return ResponseEntity.ok().body(modelMapper.map(categoria, CategoriaDto.class));
+    }
+
+    @GetMapping("/nome/{nome}")
+    public ResponseEntity<CategoriaDto> findByNome(@PathVariable String nome) {
+        Categoria categoria = categoriaService.findByNome(nome);
+        return ResponseEntity.ok().body(modelMapper.map(categoria, CategoriaDto.class));
     }
 
     @GetMapping
     public ResponseEntity<List<CategoriaDto>> findAll() {
         List<Categoria> list = categoriaService.findAll();
-        return ok().body(list.stream().map(obj -> modelMapper.map(obj, CategoriaDto.class)).collect(Collectors.toList()));
-    }
-
-    @GetMapping("/categoria")
-    public List<Categoria> filtrarPorNome(@RequestParam(required = false) String nome) {
-
-        CategoriaRepository categoriaRepository = null;
-        if (nome != null) {
-            return categoriaRepository.findByNomeContaining(nome);
-        }
-        return categoriaRepository.findAll();
-    }
-
-    @GetMapping("/buscar-por-nome")
-    public ResponseEntity<List<CategoriaDto>> findByNome() {
-        List<Categoria> list = categoriaService.findAll();
-        List<CategoriaDto> listDto = list.stream()
-                .map(categoria -> modelMapper.map(categoria, CategoriaDto.class))
-                .collect(Collectors.toList());
-        return ok().body(listDto);
-
+        return ResponseEntity.ok().body(list.stream().map(obj -> modelMapper.map(obj, CategoriaDto.class))
+                .collect(Collectors.toList()));
     }
 
     @PostMapping
-    public ResponseEntity <CategoriaDto> save(@Valid @RequestBody CategoriaDto categoriaDto) {
-
+    public ResponseEntity<CategoriaDto> save(@Valid @RequestBody CategoriaDto categoriaDto) {
         Categoria categoria = modelMapper.map(categoriaDto, Categoria.class);
         Categoria cat = categoriaService.save(categoria);
         CategoriaDto catDto = modelMapper.map(cat, CategoriaDto.class);
-        return ok().body(catDto);
-
+        return ResponseEntity.ok().body(catDto);
     }
 
     @PutMapping("/{id}")
-    public Categoria update(@Valid @PathVariable Integer id, @RequestBody Categoria categoria) {
-        categoria.setId(id);
-        return categoriaService.update(categoria);
+    public ResponseEntity<CategoriaDto> update(@PathVariable Integer id,@Valid @RequestBody CategoriaDto categoriaDto) {
+        categoriaDto.setId(id);
+        Categoria categoria = modelMapper.map(categoriaDto, Categoria.class);
+        Categoria cat = categoriaService.update(categoria);
+        CategoriaDto catDto = modelMapper.map(cat, CategoriaDto.class);
+        return ResponseEntity.ok().body(catDto);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
         categoriaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/listar-categorias")
-    public ResponseEntity<Page<Categoria>> listarCategorias(
-            @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "10") int itensPorPagina,
-            @RequestParam(defaultValue = "nome") String ordenarPor) {
-
-        Page<Categoria> categoria;
-        if (nome != null) {
-            categoria = categoriaService.buscarPorNome(nome, pagina, itensPorPagina, ordenarPor);
-        } else {
-            categoria = categoriaService.listarTodas(pagina, itensPorPagina, ordenarPor);
-        }
-        return ok(categoria);
-    }
-
 }

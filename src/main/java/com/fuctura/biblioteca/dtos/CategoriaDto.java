@@ -13,22 +13,33 @@ import java.util.Iterator;
 import java.util.List;
 
 public class CategoriaDto {
-    
+
+
     private Integer id;
 
-    @NotNull (message = "O nome da categoria não pode ser nulo")
-    @Length(min = 3, max = 50, message = "O nome deve ter entre 3 e 50) caracteres")
+    @NotNull(message = "O nome não pode ser nulo")
+    @Length(min = 4, max = 50, message = "O nome deve ter entre 4 e 50 caracteres")
     private String nome;
 
-    @NotNull
+    @NotNull(message = "A descrição não pode ser nula")
     @Length(min = 5, max = 200, message = "A descrição deve ter entre 5 e 200 caracteres")
     private String descricao;
-    private List<Livro> livros = new ArrayList<>();
 
-    public CategoriaDto (Categoria categoria) {
-     }
 
-    public CategoriaDto() {}
+    public CategoriaDto() {
+    }
+
+    public CategoriaDto(Integer id, String nome, String descricao) {
+        this.id = id;
+        this.nome = nome;
+        this.descricao = descricao;
+    }
+
+    public CategoriaDto(Categoria categoria) {
+        this.id = categoria.getId();
+        this.nome = categoria.getNome();
+        this.descricao = categoria.getDescricao();
+    }
 
     public Integer getId() {
         return id;
@@ -52,14 +63,6 @@ public class CategoriaDto {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
-    }
-
-    public List<Livro> getLivros() {
-        return livros;
-    }
-
-    public void setLivros(List<Livro> livros) {
-        this.livros = livros;
     }
 }
 
